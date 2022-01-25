@@ -4,10 +4,15 @@
 \alias{calcWeight}
 \title{Calculate weights for a set of internal controls}
 \usage{
-calcWeight(x)
+calcWeight(x, ctVal = T, weight_method = "geom_sd")
 }
 \arguments{
-\item{x}{A matrix with each row corresponding to an internal control}
+\item{x}{a matrix with each row corresponding to an internal control}
+
+\item{ctVal}{a logical specifining the input matrix being in qPCR CT values (T) or normalized high-throughput data (F)}
+
+\item{weight_method}{a string defining the optimization method to calculate weights.
+choose one of 'geom_sd', 'geom_cv', 'arith_sd', 'arith_cv', 'arith', 'geom', 'random'}
 }
 \value{
 a vector containing the weights of each internal control
@@ -17,5 +22,5 @@ Calculate weights for a set of internal controls
 }
 \examples{
 x <- matrix(1:6, 2, 3)
-w <- calcWeight(x)
+w <- calcWeight(x, TRUE, 'geom')
 }
