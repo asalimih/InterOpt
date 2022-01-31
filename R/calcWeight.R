@@ -11,7 +11,12 @@
 #' @examples
 #' x <- matrix(1:6, 2, 3)
 #' w <- calcWeight(x, TRUE, 'geom')
-calcWeight = function(x, ctVal=T, weight_method='geom_sd'){
+calcWeight = function(x, ctVal=TRUE, weight_method='geom_sd'){
+
+	if(!weight_method %in% c('geom_sd','geom_cv', 'arith_sd',
+							 'arith_cv', 'geom', 'arith', 'random'))
+		stop("weight_method is Invalid")
+
 	data = x
 	k = nrow(data)
 

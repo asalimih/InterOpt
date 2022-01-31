@@ -159,6 +159,8 @@ run_again_geom_cv = function(M, resistance = 1e-07, tuner = 0.001, times_alg_ran
 
 #imput should be in linear form (not ct or log2)
 arith_sd = function(mat){
+	if(nrow(mat)>2)
+		stop('arith_sd only works for a combination of two internal controls')
 	vec_sd = c()
 	min_sd = 99
 	w_opt = NULL

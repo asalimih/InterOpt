@@ -4,7 +4,7 @@
 \alias{calcWeight}
 \title{Calculate weights for a set of internal controls}
 \usage{
-calcWeight(x, ctVal = T, weight_method = "geom_sd")
+calcWeight(x, ctVal = TRUE, weight_method = "geom_sd")
 }
 \arguments{
 \item{x}{a matrix with each row corresponding to an internal control}

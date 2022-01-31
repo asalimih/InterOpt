@@ -19,4 +19,5 @@ BugReports: https://github.com/asalimih/InterOpt/issues
 Imports: 
     matrixStats,
     MASS,
-    stats
+    stats,
+    parallel
