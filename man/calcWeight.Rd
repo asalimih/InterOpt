@@ -9,7 +9,7 @@ calcWeight(x, ctVal = TRUE, weight_method = "geom_sd")
 \arguments{
 \item{x}{a matrix with each row corresponding to an internal control}
 
-\item{ctVal}{a logical specifining the input matrix being in qPCR CT values (T) or normalized high-throughput data (F)}
+\item{ctVal}{a boolean specifying the input matrix being in qPCR CT values (T) or normalized high-throughput data (F)}
 
 \item{weight_method}{a string defining the optimization method to calculate weights.
 choose one of 'geom_sd', 'geom_cv', 'arith_sd', 'arith_cv', 'arith', 'geom', 'random'}

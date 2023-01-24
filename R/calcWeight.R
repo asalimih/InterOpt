@@ -1,7 +1,7 @@
 #' Calculate weights for a set of internal controls
 #'
 #' @param x a matrix with each row corresponding to an internal control
-#' @param ctVal a logical specifining the input matrix being in qPCR CT values (T) or normalized high-throughput data (F)
+#' @param ctVal a boolean specifying the input matrix being in qPCR CT values (T) or normalized high-throughput data (F)
 #' @param weight_method a string defining the optimization method to calculate weights.
 #' choose one of 'geom_sd', 'geom_cv', 'arith_sd', 'arith_cv', 'arith', 'geom', 'random'
 #'

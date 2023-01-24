@@ -20,4 +20,5 @@ Imports:
     matrixStats,
     MASS,
     stats,
-    parallel
+    parallel,
+    CovTools

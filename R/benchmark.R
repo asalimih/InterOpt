@@ -47,11 +47,12 @@ comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, li
 
 	if(ctVal) {
 		data_ct = data
-		data = 2^(mean(data)-data) # the mean(data) is important because it prevents very small numbers in clean_g equations
+		data = 2^(mean(data)-data) # the mean(data) is important because it prevents very small numbers in geom_cv equations
 	}else{
 		data_ct = log2(1+data)
 	}
-
+	# data is the actual expression (cpm or 2^(40-ct))
+	# data_ct is log2 scale form (log2(cpm+1) or ct)
 	weights = c()
 	lim = ifelse(is.null(lim),nrow(combs),lim)
 	if(lim>nrow(combs))
@@ -62,27 +63,33 @@ comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, li
 	}
 
 	FinalW <- parallel::mclapply(seq(1,lim,1),
-					   function(i){
-					   	if(weight_method=="arith_cv")
-					   		w = arith_cv(data[combs[i,],])
-					   	else if(weight_method=='arith_sd')
-					   		w = arith_sd(data[combs[i,],])
-					   	else if(weight_method=="arith" | weight_method=="geom")
-					   		w = rep(1/k, k)
-					   	else if(weight_method=="geom_cv"){
-					   		w = geom_cv(data_log[combs[i,],])
-					   	}else if(weight_method=="random"){
-					   		rr = stats::runif(k)
-					   		w = rr/sum(rr)
-					   	}else if(weight_method=="geom_sd"){
-					   		w = geom_sd(data_ct[combs[i,],])
-					   	}else if(weight_method=="sd_simple"){
-					   		w = sd_simple(data_ct[combs[i,],])
-					   	}
-					   	if(i%%5000==0)
-					   		cat(i,'/', lim, '              \r')
-					   	return(w)
-					   },mc.cores=mc.cores)
+								 function(i){
+								 	if(weight_method=="arith_cv")
+								 		w = arith_cv(data[combs[i,],])
+								 	else if(weight_method=='arith_sd')
+								 		w = arith_sd(data[combs[i,],])
+								 	else if(weight_method=="arith" | weight_method=="geom")
+								 		w = rep(1/k, k)
+								 	else if(weight_method=="geom_cv_exh")
+								 		w = dirty_g(data[combs[i,],])
+								 	else if(weight_method=="geom_cv"){
+								 		w = geom_cv(data_log[combs[i,],])
+								 	}else if(weight_method=="random"){
+								 		rr = stats::runif(k)
+								 		w = rr/sum(rr)
+								 	}else if(weight_method=="geom_sd"){
+								 		w = geom_sd(data_ct[combs[i,],])
+								 	}else if(weight_method=="geom_sd_soft"){
+								 		w = geom_sd.soft(data_ct[combs[i,],])
+								 	}else if(weight_method=="geom_sd_hybrid"){
+								 		w = geom_sd.hybrid(data_ct[combs[i,],])
+								 	}else if(weight_method=="sd_simple"){
+								 		w = sd_simple(data_ct[combs[i,],])
+								 	}
+								 	if(i%%5000==0)
+								 		cat(i,'/', lim, '              \r')
+								 	return(w)
+								 },mc.cores=mc.cores)
 
 	weights = do.call(rbind, FinalW)
 	return(weights)
@@ -91,7 +98,7 @@ comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, li
 write.gct = function(df, destFile){
 	writeLines(c("#1.2",paste0(nrow(df), '\t', ncol(df))), destFile)
 	suppressWarnings(utils::write.table(cbind(gene = rownames(df), gene_d = rownames(df), df)
-								 , destFile, sep = '\t', quote = F, row.names = F, append = T))
+										, destFile, sep = '\t', quote = F, row.names = F, append = T))
 }
 
 checkInputType = function(data, ctVal){
@@ -129,7 +136,7 @@ filterInputData = function(data, ctVal, logarithm=F){
 	}
 }
 
-prep_normalized = function(data, ctVal, data_norm=NULL, norm_method='median_sd'){
+prep_normalized = function(data, ctVal, data_norm=NULL, norm_method='median_sd', high_exp_thr=35){
 	if(!is.null(data_norm))
 		data_norm = data_norm[rownames(data),]
 	else if(ctVal){
@@ -137,10 +144,11 @@ prep_normalized = function(data, ctVal, data_norm=NULL, norm_method='median_sd')
 			sds = matrixStats::rowSds(data)
 			thr = stats::quantile(sds, 0.5)
 			ref = colMeans(data[sds<thr,])
+		}else if(norm_method=='high_exp'){
+			ref = apply(data,2, function(x) mean(x[x<high_exp_thr]))
 		}else{
 			ref = colMeans(data)
 		}
-		#ref = apply(data,2, function(x) mean(x[x<35]))
 		data_norm = t(t(data) - ref)
 
 
@@ -169,7 +177,17 @@ generate_combs_inds = function(mirs_for_comb, all_mirs, combs_name_mat, k){
 
 saveGroupVec = function(gr, destFile){
 	utils::write.table(paste0(as.numeric(factor(gr))-1,collapse = ''),
-				destFile, quote = F, row.names = F, col.names = F)
+					   destFile, quote = F, row.names = F, col.names = F)
+}
+
+saveUnstablesIdx = function(data_norm, destFile, genorm_k_stables = 10) {
+	inds = which(matrixStats::rowSds(data_norm)>1.2)
+	the_sds = matrixStats::rowSds(data_norm)
+	inds = setdiff(seq(nrow(data_norm)), order(the_sds)[1:genorm_k_stables])
+	#inds = which(matrixStats::rowSds(data_norm)>1.2)
+	# one based
+	utils::write.table(paste0(inds,collapse = ' '),
+					   destFile, quote = F, row.names = F, col.names = F)
 }
 
 readValidationResult = function(fileRes){
@@ -179,7 +197,7 @@ readValidationResult = function(fileRes){
 
 
 run_algor_cuda = function(data, gr, ctVal, k, alg, wmethod, comb_num, tmpFolder,
-						  tag="source", verbose=T, remove_left_over=T, cuda_kernel='SOURCE/./main_new')
+						  tag="source", verbose=T, remove_left_over=T, cuda_kernel='SOURCE/./InterOptCuda')
 {
 	ExecFile           = cuda_kernel
 	COMBINATION_LENGTH = k
@@ -194,14 +212,19 @@ run_algor_cuda = function(data, gr, ctVal, k, alg, wmethod, comb_num, tmpFolder,
 	ALGORITHM =  which(c('Genorm', 'NormFinder', 'BestKeeper')==alg)
 	COMBINATION_NUMBER = comb_num
 	OUTPUT_FILE_NAME   = file.path(tmpFolder, paste0(tag,'_',wmethod,'_',alg,'_result.out'))
-	GEOMETRIC          = as.numeric(wmethod=='geom' | wmethod=='geom_cv' |
-										wmethod=='geom_sd' | wmethod=='sd_simple' | wmethod=='random')
+	GEOMETRIC          = as.numeric(wmethod=='geom' | wmethod=='geom_cv' | wmethod=='geom_cv_exh' |
+										wmethod=='geom_sd' | wmethod=='sd_simple' |
+										wmethod=='geom_sd_soft' | wmethod=='geom_sd_hybrid' | wmethod=='random')
 	WEIGHT_FILE_NAME   = file.path(tmpFolder, paste0(wmethod,'_flatweights.txt'))
 	COMBS_FILE_NAME    = file.path(tmpFolder, paste0(tag, '_flatcombs.txt')) # combs_idx is saved in there beforehand
+	UNSTABLES_FILE_NAME= file.path(tmpFolder, paste0(tag, '_unstables.txt'))
+	unstable_ids = utils::read.table(UNSTABLES_FILE_NAME, sep='\t', stringsAsFactors=F)$V1
+	UNSTABLES_NUM      = length(strsplit(unstable_ids, ' ')[[1]])
 
 	commandStr <- paste(ExecFile, ALGORITHM, COMBINATION_LENGTH, COMBINATION_NUMBER, FILE_NAME,
 						OUTPUT_FILE_NAME, ERROR_FILE_NAME, META_FILE_NAME,
 						MIRS, SAMPLES, METHOD, WEIGHT_FILE_NAME, COMBS_FILE_NAME, GEOMETRIC,
+						UNSTABLES_NUM, UNSTABLES_FILE_NAME,
 						paste0('$(cat ',GROUP_FILE,')'), paste0('> ',tmpFolder,'/cuda_log.txt') )
 
 	#cat("Command: ", commandStr,"\n")
@@ -252,14 +275,14 @@ next_combMat = function(kBestMat, genes_idx, keep){
 run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 						  sub_names=NULL, combs_name_mat=NULL, sub_samples_for_weights=NULL,
 						  data_target=NULL, gr_target=NULL, ctVal_target=NULL,
-						  k=2, iter=F, keep=50, retain_iters = F, retain_thr = 10,
-						  weight_methods = c('arith','arith_cv','geom','geom_cv','geom_sd','arith_sd','sd_simple'),
+						  k=2, iter=F, keep=50, retain_iters = F, retain_thr = 10, genorm_k_stables = 10,
+						  weight_methods = c('arith','geom', 'random','arith_cv','geom_cv','arith_sd','geom_sd','sd_simple'),
 						  algors = c('Genorm', 'NormFinder', 'BestKeeper', 'SDCV'),
-						  data_source_norm=NULL, data_target_norm=NULL, norm_method='median_sd',
+						  data_source_norm=NULL, data_target_norm=NULL, norm_method='high_exp', norm_method_exp_thr=35,
 						  weights_from_raw=F, val_on_source=T, val_on_target=T,
-						  verbose=T, remove_left_over=T, saveRDS=T, mc.cores=10, cuda_kernel='SOURCE/./main_new')
+						  verbose=T, remove_left_over=T, saveRDS=T, mc.cores=10, cuda_kernel='SOURCE/./InterOptCuda')
 {
-	if(any(!weight_methods %in% c('arith', 'random','arith_cv','geom','geom_cv','geom_sd','arith_sd','sd_simple')))
+	if(any(!weight_methods %in% c('arith', 'random','arith_cv','geom','geom_cv', 'geom_cv_exh','geom_sd','geom_sd_soft','geom_sd_hybrid','arith_sd','sd_simple')))
 		stop('wrong weight_methods element!')
 	cuda_algor_flag = any(c('Genorm', 'NormFinder', 'BestKeeper')%in%algors)
 	if(is.null(data_target))
@@ -298,15 +321,14 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 	checkInputType(data_source, ctVal_source)
 	data_source = filterInputData(data_source, ctVal_source)
 	genes_source = rownames(data_source)
-	data_source_norm = prep_normalized(data_source, ctVal_source, data_source_norm, norm_method)
-
+	data_source_norm = prep_normalized(data_source, ctVal_source, data_source_norm, norm_method, norm_method_exp_thr)
 
 	## Preprocess Target data
 	if(val_on_target){
 		checkInputType(data_target, ctVal_target)
 		data_target = filterInputData(data_target, ctVal_target)
 		genes_target = rownames(data_target)
-		data_target_norm = prep_normalized(data_target, ctVal_target, data_target_norm, norm_method)
+		data_target_norm = prep_normalized(data_target, ctVal_target, data_target_norm, norm_method, norm_method_exp_thr)
 	}
 
 	## Define combination mirs
@@ -325,6 +347,8 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 			write.gct(data_source, FILE_NAME)
 			saveGroupVec(gr_source, GROUP_FILE)
 			COMBS_FILE_NAME_S = file.path(tmpFolder, 'source_flatcombs.txt')
+			UNSTABLES_FILE_NAME = file.path(tmpFolder, 'source_unstables.txt')
+			saveUnstablesIdx(data_source_norm, UNSTABLES_FILE_NAME, genorm_k_stables)
 		}
 		if(val_on_target){
 			FILE_NAME  = file.path(tmpFolder, 'target_data_processed.gct')
@@ -332,6 +356,8 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 			write.gct(data_target, FILE_NAME)
 			saveGroupVec(gr_target, GROUP_FILE)
 			COMBS_FILE_NAME_T = file.path(tmpFolder, 'target_flatcombs.txt')
+			UNSTABLES_FILE_NAME = file.path(tmpFolder, 'target_unstables.txt')
+			saveUnstablesIdx(data_source_norm, UNSTABLES_FILE_NAME, genorm_k_stables)
 		}
 	}
 
@@ -371,8 +397,6 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 		n_comb = nrow(combs_mat)
 		cat('Calculating measure(',alg,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data ...                         \r', sep='')
 		if(alg=='SDCV' | alg=='SD' | alg=='CV'){
-			#if(is.null(data_norm))
-			#	browser()
 			measures = calc_cv_sd2(weights_mat, combs_mat, data_norm, ctVal, k, wmethod)
 			cat('(',wmethod,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data Done!                         \n', sep='')
 			if(iter){ # in this case alg is either SD or CV (because of the separation)
@@ -530,3 +554,4 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 	}
 	return(res_exper)
 }
+
