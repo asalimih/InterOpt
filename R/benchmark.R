@@ -1,5 +1,5 @@
 
-# vectorized version of calc_cv_sd
+# vectorized calculation of sd and cv for all combinations
 calc_cv_sd2 = function(wmat, combs, data_norm, ctVal, k, weight_method){
 	combs = t(combs) # because the bug that happens in data_norm[combs[,rg]]
 	# the data_norm should be already normalized
@@ -62,34 +62,51 @@ comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, li
 		data_log = log(data)
 	}
 
-	FinalW <- parallel::mclapply(seq(1,lim,1),
-								 function(i){
-								 	if(weight_method=="arith_cv")
-								 		w = arith_cv(data[combs[i,],])
-								 	else if(weight_method=='arith_sd')
-								 		w = arith_sd(data[combs[i,],])
-								 	else if(weight_method=="arith" | weight_method=="geom")
-								 		w = rep(1/k, k)
-								 	else if(weight_method=="geom_cv_exh")
-								 		w = dirty_g(data[combs[i,],])
-								 	else if(weight_method=="geom_cv"){
-								 		w = geom_cv(data_log[combs[i,],])
-								 	}else if(weight_method=="random"){
-								 		rr = stats::runif(k)
-								 		w = rr/sum(rr)
-								 	}else if(weight_method=="geom_sd"){
-								 		w = geom_sd(data_ct[combs[i,],])
-								 	}else if(weight_method=="geom_sd_soft"){
-								 		w = geom_sd.soft(data_ct[combs[i,],])
-								 	}else if(weight_method=="geom_sd_hybrid"){
-								 		w = geom_sd.hybrid(data_ct[combs[i,],])
-								 	}else if(weight_method=="sd_simple"){
-								 		w = sd_simple(data_ct[combs[i,],])
-								 	}
-								 	if(i%%5000==0)
-								 		cat(i,'/', lim, '              \r')
-								 	return(w)
-								 },mc.cores=mc.cores)
+	calc_single_comb_weights = function(i){
+		if(weight_method=="arith_cv")
+			w = arith_cv(data[combs[i,],])
+		else if(weight_method=='arith_sd')
+			w = arith_sd(data[combs[i,],])
+		else if(weight_method=="arith" | weight_method=="geom")
+			w = rep(1/k, k)
+		else if(weight_method=="geom_cv_exh")
+			w = dirty_g(data[combs[i,],])
+		else if(weight_method=="geom_cv"){
+			w = geom_cv(data_log[combs[i,],])
+		}else if(weight_method=="random"){
+			rr = stats::runif(k)
+			w = rr/sum(rr)
+		}else if(weight_method=="geom_sd"){
+			w = geom_sd(data_ct[combs[i,],])
+		}else if(weight_method=="geom_sd_soft"){
+			w = geom_sd.soft(data_ct[combs[i,],])
+		}else if(weight_method=="geom_sd_hybrid"){
+			w = geom_sd.hybrid(data_ct[combs[i,],])
+		}else if(weight_method=="sd_simple"){
+			w = sd_simple(data_ct[combs[i,],])
+		}
+		if(i%%100==0)
+			cat(i,'/', lim, '              \r')
+		return(w)
+	}
+
+	if(Sys.info()['sysname']=='Windows'){
+		tryCatch( {
+			cl = parallel::makeCluster(mc.cores, type='PSOCK', outfile = "")
+			parallel::clusterExport(cl,  varlist=c('arith_cv','geom_cv', 'dirty_g','geom_sd',
+												   'geom_sd.soft','geom_sd.hybrid','arith_sd',
+												   'sd_simple', 'f_cv','run_again_geom_cv',
+												   'gen_new_x_neg','gen_new_x_pos','cv_grad'))
+			ivec = seq(1,lim,1)
+			FinalW = parallel::parLapply(cl, X=ivec, fun=calc_single_comb_weights)
+		}, finally = {
+			## Stop the cluster
+			parallel::stopCluster(cl)
+		})
+
+	}else{
+		FinalW <- parallel::mclapply(seq(1,lim,1), calc_single_comb_weights, mc.cores=mc.cores)
+	}
 
 	weights = do.call(rbind, FinalW)
 	return(weights)
@@ -272,6 +289,44 @@ next_combMat = function(kBestMat, genes_idx, keep){
 	return(combMat)
 }
 
+#' get weights for all combinations
+#'
+#' @param data_source
+#' @param gr_source
+#' @param ctVal_source
+#' @param tmpFolder
+#' @param sub_names
+#' @param combs_name_mat
+#' @param sub_samples_for_weights
+#' @param data_target
+#' @param gr_target
+#' @param ctVal_target
+#' @param k
+#' @param iter
+#' @param keep
+#' @param retain_iters
+#' @param retain_thr
+#' @param genorm_k_stables
+#' @param weight_methods
+#' @param algors
+#' @param data_source_norm
+#' @param data_target_norm
+#' @param norm_method
+#' @param norm_method_exp_thr
+#' @param weights_from_raw
+#' @param val_on_source
+#' @param val_on_target
+#' @param verbose
+#' @param remove_left_over
+#' @param saveRDS
+#' @param mc.cores
+#' @param cuda_kernel
+#'
+#' @return
+#' @include weight_utils.R
+#' @export
+#'
+#' @examples
 run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 						  sub_names=NULL, combs_name_mat=NULL, sub_samples_for_weights=NULL,
 						  data_target=NULL, gr_target=NULL, ctVal_target=NULL,

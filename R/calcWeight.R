@@ -13,12 +13,15 @@
 #' w <- calcWeight(x, TRUE, 'geom')
 calcWeight = function(x, ctVal=TRUE, weight_method='geom_sd'){
 
-	if(!weight_method %in% c('geom_sd','geom_cv', 'arith_sd',
+	if(!weight_method %in% c('geom_sd', 'geom_sd_plus','geom_cv', 'arith_sd',
 							 'arith_cv', 'geom', 'arith', 'random'))
 		stop("weight_method is Invalid")
 
 	data = x
 	k = nrow(data)
+
+	if(weight_method=='geom_sd_plus' & k!=2)
+		stop(paste0("geom_sd_plus method doesn't work for more than 2 internal controls."))
 
 	if(ctVal) {
 		data_ct = data
@@ -40,6 +43,8 @@ calcWeight = function(x, ctVal=TRUE, weight_method='geom_sd'){
 		w = rr/sum(rr)
 	}else if(weight_method=="geom_sd")
 		w = geom_sd(data_ct)
+	else if(weight_method=="geom_sd_plus")
+		w = geom_sd.hybrid(data_ct)
 	else if(weight_method=="sd_simple")
 		w = sd_simple(data_ct)
 
