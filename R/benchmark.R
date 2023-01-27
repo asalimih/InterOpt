@@ -38,6 +38,7 @@ calc_cv_sd2 = function(wmat, combs, data_norm, ctVal, k, weight_method){
 	return(cbind(CV=cvs, SD=sds))
 }
 
+
 comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, lim = NULL, combs = NULL, weights_from_raw = F, mc.cores=32){
 
 	if(is.null(combs))
@@ -85,26 +86,33 @@ comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, li
 		}else if(weight_method=="sd_simple"){
 			w = sd_simple(data_ct[combs[i,],])
 		}
-		if(i%%100==0)
+		if(i%%500==0)
 			cat(i,'/', lim, '              \r')
 		return(w)
 	}
 
-	if(Sys.info()['sysname']=='Windows'){
+
+	if(mc.cores<=1){ # Serial mode
+		FinalW <<- lapply(seq(1,lim,1), calc_single_comb_weights)
+	}else if(Sys.info()['sysname']=='Windows'){ # Parallel on windows
 		tryCatch( {
-			cl = parallel::makeCluster(mc.cores, type='PSOCK', outfile = "")
+			this.env <- environment()
+			cl = parallel::makeCluster(mc.cores, type='PSOCK')
 			parallel::clusterExport(cl,  varlist=c('arith_cv','geom_cv', 'dirty_g','geom_sd',
 												   'geom_sd.soft','geom_sd.hybrid','arith_sd',
 												   'sd_simple', 'f_cv','run_again_geom_cv',
-												   'gen_new_x_neg','gen_new_x_pos','cv_grad'))
+												   'gen_new_x_neg','gen_new_x_pos','cv_grad'),
+									envir = this.env)
 			ivec = seq(1,lim,1)
-			FinalW = parallel::parLapply(cl, X=ivec, fun=calc_single_comb_weights)
+			FinalW = parallel::parLapply(cl, X=ivec, calc_single_comb_weights)
+		}, error = function(e){
+			message('Parallel computation failed, switching to serial mode.')
+			FinalW <<- lapply(seq(1,lim,1), calc_single_comb_weights)
 		}, finally = {
-			## Stop the cluster
 			parallel::stopCluster(cl)
 		})
 
-	}else{
+	}else{ # Parallel on linux
 		FinalW <- parallel::mclapply(seq(1,lim,1), calc_single_comb_weights, mc.cores=mc.cores)
 	}
 
@@ -327,15 +335,15 @@ next_combMat = function(kBestMat, genes_idx, keep){
 #' @export
 #'
 #' @examples
-run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
+run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 						  sub_names=NULL, combs_name_mat=NULL, sub_samples_for_weights=NULL,
 						  data_target=NULL, gr_target=NULL, ctVal_target=NULL,
 						  k=2, iter=F, keep=50, retain_iters = F, retain_thr = 10, genorm_k_stables = 10,
-						  weight_methods = c('arith','geom', 'random','arith_cv','geom_cv','arith_sd','geom_sd','sd_simple'),
-						  algors = c('Genorm', 'NormFinder', 'BestKeeper', 'SDCV'),
+						  weight_methods = c('geom_sd_hybrid'),
+						  algors = c('SDCV'),
 						  data_source_norm=NULL, data_target_norm=NULL, norm_method='high_exp', norm_method_exp_thr=35,
 						  weights_from_raw=F, val_on_source=T, val_on_target=T,
-						  verbose=T, remove_left_over=T, saveRDS=T, mc.cores=10, cuda_kernel='SOURCE/./InterOptCuda')
+						  verbose=T, remove_left_over=T, saveRDS=F, mc.cores=10, cuda_kernel='SOURCE/./InterOptCuda')
 {
 	if(any(!weight_methods %in% c('arith', 'random','arith_cv','geom','geom_cv', 'geom_cv_exh','geom_sd','geom_sd_soft','geom_sd_hybrid','arith_sd','sd_simple')))
 		stop('wrong weight_methods element!')
@@ -346,6 +354,8 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 		weight_methods=c('arith')
 		message('k:1, No Optimization, results are in arith.')
 	}
+	if(k>2 & ("geom_sd_hybrid" %in% weight_methods))
+		stop("geom_sd_hybrid is not available for k>2 please set weight_methods parameter to 'geom_sd'")
 	if(iter){
 		if(k<=2)
 			stop('k must be larger than 2 in iterative mode.')
@@ -357,7 +367,9 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 	}
 	if(ncol(data_source)!=length(gr_source))
 		stop('The number of columns in the data must be equal to the number of elements in gr')
-
+	if(is.null(tmpFolder)){
+		tmpFolder = tempdir()
+	}
 	suppressWarnings(dir.create(tmpFolder, recursive=TRUE))
 	## Preprocess
 	# 	If normalzied data is not prepared in the input and its type is ct then the average is considered
@@ -434,13 +446,15 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 	}
 
 	proc_weights = function(data, ctVal, combs_idx_mat, k, data_norm=NULL) {
-		cat('Calculating weights(',wmethod,')[k',k,']...                         \r', sep='')
+		if(verbose)
+			cat('Calculating weights(',wmethod,')[k',k,']...                         \r', sep='')
 		if(is.null(data_norm) | weights_from_raw){ # data_source_norm can happen to be null just when source data is not CT
 			weights_k = comb_weights2(data[,sub_samples_for_weights], ctVal, k, weight_method = wmethod, combs=combs_idx_mat, weights_from_raw=T, mc.cores=mc.cores)
 		}else{
 			weights_k = comb_weights2(data_norm, ctVal, k, weight_method = wmethod, combs=combs_idx_mat, mc.cores=mc.cores)
 		}
-		cat('(',wmethod,')[k',k,'] weights Calculated!                         \n', sep='')
+		if(verbose)
+			cat('(',wmethod,')[k',k,'] weights Calculated!                         \n', sep='')
 		if(cuda_algor_flag){
 			WEIGHT_FILE_NAME   = file.path(tmpFolder, paste0(wmethod,'_flatweights.txt'))
 			saveFlat(weights_k, WEIGHT_FILE_NAME)
@@ -450,10 +464,12 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 
 	proc_algor = function(data, ctVal, gr, k, data_norm, combs_mat, weights_mat, alg, tag){
 		n_comb = nrow(combs_mat)
-		cat('Calculating measure(',alg,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data ...                         \r', sep='')
+		if(verbose)
+			cat('Calculating measure(',alg,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data ...                         \r', sep='')
 		if(alg=='SDCV' | alg=='SD' | alg=='CV'){
 			measures = calc_cv_sd2(weights_mat, combs_mat, data_norm, ctVal, k, wmethod)
-			cat('(',wmethod,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data Done!                         \n', sep='')
+			if(verbose)
+				cat('(',wmethod,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data Done!                         \n', sep='')
 			if(iter){ # in this case alg is either SD or CV (because of the separation)
 				measure = matrix(measures[,alg])
 				colnames(measure) = alg
@@ -462,7 +478,8 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 				return(as.matrix(as.data.frame(measures)))
 		}else{
 			stab = run_algor_cuda(data, gr, ctVal, k, alg, wmethod, n_comb, tmpFolder, tag, verbose, remove_left_over, cuda_kernel)
-			cat('(',wmethod,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data Done!                         \n', sep='')
+			if(verbose)
+				cat('(',wmethod,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data Done!                         \n', sep='')
 			stab = matrix(stab) # just to be able to give a name to the vector so when binded to other vectors it would keep it
 			colnames(stab) = alg
 			return(stab)
@@ -605,7 +622,8 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder,
 	if(remove_left_over & cuda_algor_flag) {
 		system(paste("rm", file.path(tmpFolder, '*.gct')))
 		system(paste("rm", file.path(tmpFolder, '*.txt')))
-		message('Left over files removed.')
+		if(verbose)
+			message('Left over files removed.')
 	}
 	return(res_exper)
 }

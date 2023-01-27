@@ -4,19 +4,17 @@
 \alias{run_experiment}
 \title{get weights for all combinations}
 \usage{
-run_experiment(data_source, gr_source, ctVal_source, tmpFolder,
+run_experiment(data_source, gr_source, ctVal_source, tmpFolder = NULL,
   sub_names = NULL, combs_name_mat = NULL,
   sub_samples_for_weights = NULL, data_target = NULL,
   gr_target = NULL, ctVal_target = NULL, k = 2, iter = F,
   keep = 50, retain_iters = F, retain_thr = 10,
-  genorm_k_stables = 10, weight_methods = c("arith", "geom", "random",
-  "arith_cv", "geom_cv", "arith_sd", "geom_sd", "sd_simple"),
-  algors = c("Genorm", "NormFinder", "BestKeeper", "SDCV"),
-  data_source_norm = NULL, data_target_norm = NULL,
-  norm_method = "high_exp", norm_method_exp_thr = 35,
-  weights_from_raw = F, val_on_source = T, val_on_target = T,
-  verbose = T, remove_left_over = T, saveRDS = T, mc.cores = 10,
-  cuda_kernel = "SOURCE/./InterOptCuda")
+  genorm_k_stables = 10, weight_methods = c("geom_sd_hybrid"),
+  algors = c("SDCV"), data_source_norm = NULL,
+  data_target_norm = NULL, norm_method = "high_exp",
+  norm_method_exp_thr = 35, weights_from_raw = F, val_on_source = T,
+  val_on_target = T, verbose = T, remove_left_over = T,
+  saveRDS = F, mc.cores = 10, cuda_kernel = "SOURCE/./InterOptCuda")
 }
 \arguments{
 \item{cuda_kernel}{}

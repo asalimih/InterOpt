@@ -14,7 +14,7 @@
 calcWeight = function(x, ctVal=TRUE, weight_method='geom_sd'){
 
 	if(!weight_method %in% c('geom_sd', 'geom_sd_plus','geom_cv', 'arith_sd',
-							 'arith_cv', 'geom', 'arith', 'random'))
+							 'arith_cv', 'geom', 'arith', 'random', 'sd_simple'))
 		stop("weight_method is Invalid")
 
 	data = x
