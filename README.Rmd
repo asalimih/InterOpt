@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of InterOpt is to provide optimal weights for a weighted mean of multiple internal controls in qPCR experiments.
+The goal of InterOpt is to improve qPCR data normalization by providing optimal weights for  weighted mean of multiple internal controls. The common method when dealing with multiple internal controls is taking a geometric mean of them. 
 
 ## Installation
 
@@ -27,13 +27,46 @@ You can install the development version from GitHub with:
 # install.packages("devtools")
 devtools::install_github("asalimih/InterOpt")
 ```
-## Example
+## Use Cases
 
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
+1) You have multiple internal controls (usually 2 or 3) and their corresponding raw CT values. Here is how you can aggregate them into one new internal control using weighted geometric mean:
+```{r example1}
 library(InterOpt)
-## basic example code
-x = matrix(1:6, 2, 3)
+
+controls = c('RNU48','hsa-miR-16-5p')
+x = data_GSE78870[controls,]
+# x is a matrix of raw CT values, each row is an internal control and columns are samples
 w = calcWeight(x, ctVal = TRUE, weight_method = 'geom_sd')
+new_control = colSums(w*x)
+# new_control is the weighted mean of the internal controls which can be used like a new internal control
 ```
+
+2) You have a dataset containing lots of genes. Here is how you can check all possible pair combinations (k=2) and calculate their corresponding aggregation weights (optimal weights to use in weighted mean) along with the stability measures (SD and CV) of each resulting aggregated combination.
+```{r example2}
+library(InterOpt)
+
+# only check miRNAs which have CT values less than 37 in all samples
+mirs_for_combinations = rownames(data_GSE50013)[rowSums(data_GSE50013>37)==0]
+
+result = run_experiment(data_source = data_GSE50013,
+					  gr_source = groups_GSE50013,
+					  ctVal_source = T,
+					  sub_names = mirs_for_combinations,
+					  norm_method = 'high_exp',
+					  norm_method_exp_thr = 35,
+					  k = 2,
+					  weight_methods=c('geom', 'geom_sd'),
+					  mc.cores=4,
+					  verbose=F)
+head(result$res_source$geom_sd)
+```
+## Datasets
+The following pre-processed datasets and their sample groups are available in the package. for more information please refer to the manual (e.g. ?data_GSE78870):  
+- data_GSE78870, groups_GSE78870  
+- data_GSE50013, groups_GSE50013  
+- data_GSE67075, groups_GSE67075  
+- data_GSE90828, groups_GSE90828  
+- data_TCGA_BRCA, groups_TCGA_BRCA  
+
+## Note
+The documentation for the package is in progress ...
