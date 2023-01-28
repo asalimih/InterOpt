@@ -14,10 +14,68 @@ run_experiment(data_source, gr_source, ctVal_source, tmpFolder = NULL,
   data_target_norm = NULL, norm_method = "high_exp",
   norm_method_exp_thr = 35, weights_from_raw = F, val_on_source = T,
   val_on_target = T, verbose = T, remove_left_over = T,
-  saveRDS = F, mc.cores = 10, cuda_kernel = "SOURCE/./InterOptCuda")
+  saveRDS = F, mc.cores = 10, cuda_kernel = "InterOptCuda")
 }
 \arguments{
-\item{cuda_kernel}{}
+\item{data_source}{a matrix of genes expression. rows are genes and columns are the samples. its \code{rownames} should be the names of the genes}
+
+\item{gr_source}{a vector of characters showing the groups of the samples}
+
+\item{ctVal_source}{logical. if \code{TRUE}, the elements in data_source are considered as qPCR CT values. if \code{FALSE}, they are considered as normalized expression of an RNA-seq experiment (count per million)}
+
+\item{tmpFolder}{a temporary directory to store intermediate files while calculating weights. If not specified an automatic temporary directory is built and used}
+
+\item{sub_names}{a character vector of gene names to consider in combinations. if \code{NULL}, all genes are considered}
+
+\item{combs_name_mat}{a matrix of characters. each row shows a combination of genes. if \code{NULL}, all combinations of all genes or a subset of them specified by \code{sub_names} is used.}
+
+\item{sub_samples_for_weights}{a vector of sample indices to consider for calculating aggregation weights. this argument is used only for benchmarking purposes}
+
+\item{data_target}{a matrix of external data genes expression. This parameter is used when you want to examine the calculated weights on a separate external data. rows are genes and columns are the samples.}
+
+\item{gr_target}{a vector of characters showing the groups of the samples of the external data.}
+
+\item{ctVal_target}{logical. if \code{TRUE}, the elements in data_target are considered as qPCR CT values. if \code{FALSE}, they are considered as normalized expression of an RNA-seq experiment (count per million)}
+
+\item{k}{integer, the number of genes in each combination.}
+
+\item{iter}{logical, if \code{TRUE}, an iterative approach is utilized. instead of calculating all combinations for k>2, in each iteration the top most stable combinations (defined by the `keep` parameter) are crossed with other genes to make the new combinations. useful for k>3 when the number of combinations is very high}
+
+\item{keep}{integer, the number of genes to keep in each iteration of iterative mode}
+
+\item{retain_iters}{if TRUE, all intermediate iterations results are also reported in the output. (only for iterative mode)}
+
+\item{retain_thr}{integer, the number of iterations to retain in the output result. (only when \code{retain_iters=TRUE})}
+
+\item{genorm_k_stables}{integer, number of top stable genes (in terms of standard deviation) to consider in the modified Genorm stability measure. default is 10}
+
+\item{weight_methods}{a character vector of methods to calculate aggregation weights. available methods are 'arith', 'random','arith_cv','geom','geom_cv', 'geom_cv_exh','geom_sd','geom_sd_soft','geom_sd_hybrid','arith_sd','sd_simple'}
+
+\item{algors}{a character vector of stability measures. available measures are 'SD', 'CV', 'Genorm', 'NormFinder'}
+
+\item{data_source_norm}{a matrix of normalized genes expression. if \code{NULL}, the default automatic normalization is used. aggregation weights are calculated based on the normalized data by default unless \code{weight_from_raw=TRUE}. Moreover the stability measures are also calculated based on the normalized data}
+
+\item{data_target_norm}{a matrix of normalized external genes expression}
+
+\item{norm_method}{a single character string. 'median_sd' or 'high_exp'. In 'median_sd' method, the average of half of the genes with lower standard deviation is used as a reference gene to normalize the data. In 'high_exp' method only in each sample only the ct values larger than \code{norm_method_exp_thr} are considered.}
+
+\item{norm_method_exp_thr}{integer, the CT threshold to use in high_exp normalization method.}
+
+\item{weights_from_raw}{if \code{TRUE}, aggregation weights are calculated based on the raw CT values instead of the normalized data.}
+
+\item{val_on_source}{if \code{TRUE}, the stability measures are calculated on data_source.}
+
+\item{val_on_target}{if \code{TRUE}, the stability measures are calculated on data_target.}
+
+\item{verbose}{logical, print the calculation process in console}
+
+\item{remove_left_over}{logical, if \code{FALSE}, the intermediate files used for CUDA calculation are not removed in the tmpFolder. (used for debugging purposes)}
+
+\item{saveRDS}{logical, if \code{TRUE}, the final output is also saved as an RDS file in the tmpFolder}
+
+\item{mc.cores}{number of the cpu cores to use for calculation SD and CV stability measures.}
+
+\item{cuda_kernel}{a single character string for the InterOpt cuda kernel executable. defauly is 'InterOptCuda'}
 }
 \description{
 get weights for all combinations

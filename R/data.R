@@ -1,8 +1,9 @@
 #' GSE78870 Primary breast cancer qPCR array (Tissue)
 #'
-#' A subset of GSE78870 which excludes miRs with
-#' ct values more than 39 in at least one sample and excludes miRs with
-#' ct values more than 35 in all samples.
+#' A subset of GSE78870
+#' miRs with ct values more than 39 in at least one sample and
+#' miRs with ct values more than 35 in all samples are removed.
+#' miRs with at most 3 missing values were imputed using nonedetects package
 #'
 #' @format ## `data_GSE78870`
 #' A matrix with 364 rows and 106 columns:
@@ -11,9 +12,10 @@
 
 #' GSE50013 Liver Cancer qPCR array (Plasma)
 #'
-#' A subset of GSE50013 which excludes miRs with
-#' ct values more than 39 in at least one sample and excludes miRs with
-#' ct values more than 35 in all samples.
+#' A subset of GSE50013
+#' miRs with ct values more than 39 in at least one sample and
+#' miRs with ct values more than 35 in all samples are removed.
+#' miRs with at most 3 missing values were imputed using nonedetects package
 #'
 #' @format ## `data_GSE50013`
 #' A matrix with 241 rows and 40 columns:
@@ -22,9 +24,10 @@
 
 #' GSE67075 Colon Cancer qPCR array (Plasma)
 #'
-#' A subset of GSE67075 which excludes miRs with
-#' ct values more than 39 in at least one sample and excludes miRs with
-#' ct values more than 35 in all samples.
+#' A subset of GSE67075
+#' miRs with ct values more than 39 in at least one sample and
+#' miRs with ct values more than 35 in all samples are removed.
+#' miRs with at most 3 missing values were imputed using nonedetects package
 #'
 #' @format ## `data_GSE67075`
 #' A matrix with 554 rows and 48 columns:
@@ -33,9 +36,10 @@
 
 #' GSE90828 Colon Cancer qPCR array (Plasma)
 #'
-#' A subset of GSE90828 which excludes miRs with
-#' ct values more than 39 in at least one sample and excludes miRs with
-#' ct values more than 35 in all samples.
+#' A subset of GSE90828
+#' miRs with ct values more than 39 in at least one sample and
+#' miRs with ct values more than 35 in all samples are removed.
+#' miRs with at most 3 missing values were imputed using nonedetects package
 #'
 #' @format ## `data_GSE90828`
 #' A matrix with 336 rows and 53 columns:

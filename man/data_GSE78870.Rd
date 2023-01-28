@@ -13,8 +13,9 @@ A matrix with 364 rows and 106 columns:}
 data_GSE78870
 }
 \description{
-A subset of GSE78870 which excludes miRs with
-ct values more than 39 in at least one sample and excludes miRs with
-ct values more than 35 in all samples.
+A subset of GSE78870
+miRs with ct values more than 39 in at least one sample and
+miRs with ct values more than 35 in all samples are removed.
+miRs with at most 3 missing values were imputed using nonedetects package
 }
 \keyword{datasets}

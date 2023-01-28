@@ -59,6 +59,7 @@ result = run_experiment(data_source = data_GSE50013,
                       weight_methods=c('geom', 'geom_sd'),
                       mc.cores=4,
                       verbose=F)
+# Note: the data is automatically normalized using the norm_method and the aggregation weights are calculated based on the normalized data by default. moreover the stability measures are also calculated based on the normalized data.
 head(result$res_source$geom_sd)
 #>          Gene1           Gene2          w1        w2        CV       SD
 #> 1 has-miR-1305     has-miR-155  0.13664283 0.8633572 0.4980741 1.223680
