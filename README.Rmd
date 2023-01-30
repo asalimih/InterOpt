@@ -61,6 +61,8 @@ result = run_experiment(data_source = data_GSE50013,
 # Note: the data is automatically normalized using the norm_method and the aggregation weights are calculated based on the normalized data by default. moreover the stability measures are also calculated based on the normalized data.
 head(result$res_source$geom_sd)
 ```
+In order to have NormFinder and Genorm stability measures in the output, you need to first add `InterOptCuda` to your PATH (Please check [InterOptCuda](https://github.com/asalimih/InterOptCuda)). Then just add `algors=c('SD','CV','Genorm','NormFinder')` argument in `run_experiment`
+
 ## Datasets
 The following pre-processed datasets and their sample groups are available in the package. for more information please refer to the manual (e.g. ?data_GSE78870):  
 - data_GSE78870, groups_GSE78870  

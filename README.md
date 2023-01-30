@@ -70,6 +70,11 @@ head(result$res_source$geom_sd)
 #> 6 has-miR-1305    hsa-miR-1290 -0.04124614 1.0412461 1.3745626 2.228133
 ```
 
+In order to have NormFinder and Genorm stability measures in the output,
+you need to first add `InterOptCuda` to your PATH (Please check
+[InterOptCuda](https://github.com/asalimih/InterOptCuda)). Then just add
+`algors=c('SD','CV','Genorm','NormFinder')` argument in `run_experiment`
+
 ## Datasets
 
 The following pre-processed datasets and their sample groups are
