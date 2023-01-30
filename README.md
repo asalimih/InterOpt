@@ -80,11 +80,13 @@ you need to first add `InterOptCuda` to your PATH (Please check
 The following pre-processed datasets and their sample groups are
 available in the package. for more information please refer to the
 manual (e.g. ?data_GSE78870):  
-- data_GSE78870, groups_GSE78870  
-- data_GSE50013, groups_GSE50013  
-- data_GSE67075, groups_GSE67075  
-- data_GSE90828, groups_GSE90828  
-- data_TCGA_BRCA, groups_TCGA_BRCA
+- `data_GSE78870`, `groups_GSE78870`  
+- `data_GSE50013`, `groups_GSE50013`  
+- `data_GSE57661`, `groups_GSE57661`  
+- `data_GSE59520`, `groups_GSE59520`  
+- `data_GSE67075`, `groups_GSE67075`  
+- `data_GSE90828`, `groups_GSE90828`  
+- `data_TCGA_BRCA`, `groups_TCGA_BRCA`
 
 ## Note
 

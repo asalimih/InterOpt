@@ -34,6 +34,30 @@
 #' @source <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE67075>
 "data_GSE67075"
 
+#' GSE57661 Early-stage breast cancer qPCR array (Plasma)
+#'
+#' A subset of GSE57661
+#' miRs with ct values more than 39 in at least one sample and
+#' miRs with ct values more than 35 in all samples are removed.
+#' miRs with at most 3 missing values were imputed using nonedetects package
+#'
+#' @format ## `data_GSE57661`
+#' A matrix with 176 rows and 48 columns:
+#' @source <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57661>
+"data_GSE57661"
+
+#' GSE59520 Embryonic tumors of testis qPCR array (Plasma)
+#'
+#' A subset of GSE59520
+#' miRs with ct values more than 39 in at least one sample and
+#' miRs with ct values more than 35 in all samples are removed.
+#' miRs with at most 3 missing values were imputed using nonedetects package
+#'
+#' @format ## `data_GSE59520`
+#' A matrix with 597 rows and 36 columns:
+#' @source <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59520>
+"data_GSE59520"
+
 #' GSE90828 Colon Cancer qPCR array (Plasma)
 #'
 #' A subset of GSE90828
