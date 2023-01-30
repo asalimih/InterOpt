@@ -424,7 +424,7 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 			saveGroupVec(gr_target, GROUP_FILE)
 			COMBS_FILE_NAME_T = file.path(tmpFolder, 'target_flatcombs.txt')
 			UNSTABLES_FILE_NAME = file.path(tmpFolder, 'target_unstables.txt')
-			saveUnstablesIdx(data_source_norm, UNSTABLES_FILE_NAME, genorm_k_stables)
+			saveUnstablesIdx(data_target_norm, UNSTABLES_FILE_NAME, genorm_k_stables)
 		}
 	}
 
