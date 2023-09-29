@@ -190,7 +190,7 @@ saveFlat = function(df, destFile){
 
 generate_combs_inds = function(mirs_for_comb, all_mirs, combs_name_mat, k){
 	if(!is.null(combs_name_mat)){
-		combs_idx_mat = sapply(combs_name_mat,function(x) match(x, all_mirs))
+		combs_idx_mat = structure(vapply(combs_name_mat, match, numeric(1), all_mirs), dim=dim(combs_name_mat)) 
 	}else{
 		# generate all combinations of mirs_for_comb based on their index in all_mirs
 		mirs_for_comb_ind = match(mirs_for_comb, all_mirs)
