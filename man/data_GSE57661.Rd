@@ -4,8 +4,10 @@
 \name{data_GSE57661}
 \alias{data_GSE57661}
 \title{GSE57661 Early-stage breast cancer qPCR array (Plasma)}
-\format{## `data_GSE57661`
-A matrix with 176 rows and 48 columns:}
+\format{
+## `data_GSE57661`
+A matrix with 176 rows and 48 columns:
+}
 \source{
 <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57661>
 }

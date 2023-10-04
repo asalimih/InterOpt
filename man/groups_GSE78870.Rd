@@ -4,8 +4,10 @@
 \name{groups_GSE78870}
 \alias{groups_GSE78870}
 \title{sample groups of data_GSE78870 data}
-\format{## `groups_GSE78870`
-A factor with 106 elements}
+\format{
+## `groups_GSE78870`
+A factor with 106 elements
+}
 \usage{
 groups_GSE78870
 }

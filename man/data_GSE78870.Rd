@@ -4,8 +4,10 @@
 \name{data_GSE78870}
 \alias{data_GSE78870}
 \title{GSE78870 Primary breast cancer qPCR array (Tissue)}
-\format{## `data_GSE78870`
-A matrix with 364 rows and 106 columns:}
+\format{
+## `data_GSE78870`
+A matrix with 364 rows and 106 columns:
+}
 \source{
 <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE78870>
 }

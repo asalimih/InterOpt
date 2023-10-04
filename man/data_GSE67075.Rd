@@ -4,8 +4,10 @@
 \name{data_GSE67075}
 \alias{data_GSE67075}
 \title{GSE67075 Colon Cancer qPCR array (Plasma)}
-\format{## `data_GSE67075`
-A matrix with 554 rows and 48 columns:}
+\format{
+## `data_GSE67075`
+A matrix with 554 rows and 48 columns:
+}
 \source{
 <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE67075>
 }

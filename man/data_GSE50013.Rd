@@ -4,8 +4,10 @@
 \name{data_GSE50013}
 \alias{data_GSE50013}
 \title{GSE50013 Liver Cancer qPCR array (Plasma)}
-\format{## `data_GSE50013`
-A matrix with 241 rows and 40 columns:}
+\format{
+## `data_GSE50013`
+A matrix with 241 rows and 40 columns:
+}
 \source{
 <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE50013>
 }

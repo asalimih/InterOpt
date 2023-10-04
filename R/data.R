@@ -118,3 +118,19 @@
 #' @format ## `groups_GSE90828`
 #' A factor with 53 elements
 "groups_GSE90828"
+
+#' sample groups of data_GSE57661 data
+#'
+#' each element represents the group of the sample
+#'
+#' @format ## `groups_GSE57661`
+#' A factor with 48 elements
+"groups_GSE57661"
+
+#' sample groups of data_GSE59520 data
+#'
+#' each element represents the group of the sample
+#'
+#' @format ## `groups_GSE59520`
+#' A factor with 48 elements
+"groups_GSE59520"

@@ -4,8 +4,10 @@
 \name{groups_TCGA_BRCA}
 \alias{groups_TCGA_BRCA}
 \title{sample groups of data_TCGA_BRCA data}
-\format{## `groups_TCGA_BRCA`
-A matrix with 1201 rows and 7 columns:}
+\format{
+## `groups_TCGA_BRCA`
+A matrix with 1201 rows and 7 columns:
+}
 \usage{
 groups_TCGA_BRCA
 }

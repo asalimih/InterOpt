@@ -4,8 +4,10 @@
 \name{data_TCGA_BRCA}
 \alias{data_TCGA_BRCA}
 \title{TCGA Breast Cancer miRNA-Seq data (Tissue)}
-\format{## `data_TCGA_BRCA`
-A matrix with 185 rows and 1201 columns:}
+\format{
+## `data_TCGA_BRCA`
+A matrix with 185 rows and 1201 columns:
+}
 \usage{
 data_TCGA_BRCA
 }
