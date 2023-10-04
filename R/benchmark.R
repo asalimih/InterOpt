@@ -91,8 +91,15 @@ calc_agg_refs = function(wmat, combs, data, ctVal, k, weight_method){
 	return(full_A)
 }
 
+mycat = function(x, stdout.file=NULL){
+	if(is.null(stdout.file)){
+		cat(x)
+	}else{
+		system(paste0('echo ', x, '>> ', stdout.file))
+	}
+}
 
-comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, lim = NULL, combs = NULL, weights_from_raw = F, mc.cores=32){
+comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, lim = NULL, combs = NULL, weights_from_raw = F, mc.cores=32, stdout.file=""){
 
 	if(is.null(combs))
 		stop('combs cant be null!')
@@ -140,7 +147,7 @@ comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, li
 			w = sd_simple(data_ct[combs[i,],])
 		}
 		if(i%%500==0)
-			cat(i,'/', lim, '              \r')
+			cat(i,'/', lim, '                          \r', file=stdout.file, append=T)
 		return(w)
 	}
 
@@ -383,6 +390,7 @@ next_combMat = function(kBestMat, genes_idx, keep){
 #' @param mc.cores number of the cpu cores to use for calculation SD and CV stability measures.
 #' @param cuda_kernel a single character string for the InterOpt cuda kernel executable. defauly is 'InterOptCuda'
 #' @param output_agg_refs if \code{TRUE}, the aggregated reference genes for each combination and weighting method is provided in the output list element \code{aggregated_refs}
+#' @param stdout.file  character string naming the file to print to. If "" (the default), cat prints to the standard output connection
 #'
 #' @return
 #' @include weight_utils.R
@@ -397,7 +405,7 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 						  algors = c('SDCV'),
 						  data_source_norm=NULL, data_target_norm=NULL, norm_method='high_exp', norm_method_exp_thr=35,
 						  weights_from_raw=F, val_on_source=T, val_on_target=T,
-						  verbose=T, remove_left_over=T, saveRDS=F, mc.cores=10, cuda_kernel='InterOptCuda', output_agg_refs=F)
+						  verbose=T, stdout.file="", remove_left_over=T, saveRDS=F, mc.cores=10, cuda_kernel='InterOptCuda', output_agg_refs=F)
 {
 	if(any(!weight_methods %in% c('arith', 'random','arith_cv','geom','geom_cv', 'geom_cv_exh','geom_sd','geom_sd_soft','geom_sd_hybrid','arith_sd','sd_simple')))
 		stop('wrong weight_methods element!')
@@ -425,6 +433,9 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 		tmpFolder = tempdir()
 	}
 	suppressWarnings(dir.create(tmpFolder, recursive=TRUE))
+	if(stdout.file!=""){
+		cat("", file = stdout.file)
+	}
 	## Preprocess
 	# 	If normalzied data is not prepared in the input and its type is ct then the average is considered
 	# 	as normalized data.
@@ -501,14 +512,14 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 
 	proc_weights = function(data, ctVal, combs_idx_mat, k, data_norm=NULL) {
 		if(verbose)
-			cat('Calculating weights(',wmethod,')[k',k,']...                         \r', sep='')
+			cat('Calculating weights(',wmethod,')[k',k,']...                         \n', sep='', file=stdout.file, append=T)
 		if(is.null(data_norm) | weights_from_raw){ # data_source_norm can happen to be null just when source data is not CT
-			weights_k = comb_weights2(data[,sub_samples_for_weights], ctVal, k, weight_method = wmethod, combs=combs_idx_mat, weights_from_raw=T, mc.cores=mc.cores)
+			weights_k = comb_weights2(data[,sub_samples_for_weights], ctVal, k, weight_method = wmethod, combs=combs_idx_mat, weights_from_raw=T, mc.cores=mc.cores, stdout.file = stdout.file)
 		}else{
-			weights_k = comb_weights2(data_norm, ctVal, k, weight_method = wmethod, combs=combs_idx_mat, mc.cores=mc.cores)
+			weights_k = comb_weights2(data_norm, ctVal, k, weight_method = wmethod, combs=combs_idx_mat, mc.cores=mc.cores, stdout.file = stdout.file)
 		}
 		if(verbose)
-			cat('(',wmethod,')[k',k,'] weights Calculated!                         \n', sep='')
+			cat('(',wmethod,')[k',k,'] weights Calculated!                         \n', sep='', file=stdout.file, append=T)
 		if(cuda_algor_flag){
 			WEIGHT_FILE_NAME   = file.path(tmpFolder, paste0(wmethod,'_flatweights.txt'))
 			saveFlat(weights_k, WEIGHT_FILE_NAME)
@@ -519,7 +530,7 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 	proc_agg_refs = function(data, ctVal, gr, k, data_norm, gene_names, combs_mat, weights_mat, tag){
 		n_comb = nrow(combs_mat)
 		if(verbose)
-			cat('Preparing Aggregated Refs [k',k,'][',n_comb,'] ...                         \r', sep='')
+			cat('Preparing Aggregated Refs [k',k,'][',n_comb,'] ...                         \r', sep='', file=stdout.file, append=T)
 		agg_refs = calc_agg_refs(weights_mat, combs_mat, data, ctVal, k, wmethod)
 		agg_refs = data.frame(apply(combs_mat, 2, function(x) gene_names[x]),
 						   agg_refs, stringsAsFactors = F)
@@ -527,18 +538,18 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 		rownames(agg_refs) = c(1:nrow(agg_refs))
 
 		if(verbose)
-			cat('(',wmethod,')[k',k,'][',n_comb,'] Aggregated Refs Prepared!                         \n', sep='')
+			cat('(',wmethod,')[k',k,'][',n_comb,'] Aggregated Refs Prepared!                         \n', sep='', file=stdout.file, append=T)
 		return(agg_refs)
 	}
 
 	proc_algor = function(data, ctVal, gr, k, data_norm, combs_mat, weights_mat, alg, tag){
 		n_comb = nrow(combs_mat)
 		if(verbose)
-			cat('Calculating measure(',alg,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data ...                         \r', sep='')
+			cat('Calculating measure(',alg,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data ...                         \n', sep='', file=stdout.file, append=T)
 		if(alg=='SDCV' | alg=='SD' | alg=='CV'){
 			measures = calc_cv_sd2(weights_mat, combs_mat, data_norm, ctVal, k, wmethod)
 			if(verbose)
-				cat('(',wmethod,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data Done!                         \n', sep='')
+				cat('(',wmethod,')[k',k,'][',alg,'][',n_comb,'] ',tag,' data Done!                         \n', sep='', file=stdout.file, append=T)
 			if(iter){ # in this case alg is either SD or CV (because of the separation)
 				measure = matrix(measures[,alg])
 				colnames(measure) = alg

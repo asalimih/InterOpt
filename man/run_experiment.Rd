@@ -31,6 +31,7 @@ run_experiment(
   val_on_source = T,
   val_on_target = T,
   verbose = T,
+  stdout.file = "",
   remove_left_over = T,
   saveRDS = F,
   mc.cores = 10,
@@ -90,6 +91,8 @@ run_experiment(
 \item{val_on_target}{if \code{TRUE}, the stability measures are calculated on data_target.}
 
 \item{verbose}{logical, print the calculation process in console}
+
+\item{stdout.file}{character string naming the file to print to. If "" (the default), cat prints to the standard output connection}
 
 \item{remove_left_over}{logical, if \code{FALSE}, the intermediate files used for CUDA calculation are not removed in the tmpFolder. (used for debugging purposes)}
 
