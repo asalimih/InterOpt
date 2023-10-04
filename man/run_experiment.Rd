@@ -4,17 +4,39 @@
 \alias{run_experiment}
 \title{get weights for all combinations}
 \usage{
-run_experiment(data_source, gr_source, ctVal_source, tmpFolder = NULL,
-  sub_names = NULL, combs_name_mat = NULL,
-  sub_samples_for_weights = NULL, data_target = NULL,
-  gr_target = NULL, ctVal_target = NULL, k = 2, iter = F,
-  keep = 50, retain_iters = F, retain_thr = 10,
-  genorm_k_stables = 10, weight_methods = c("geom_sd_hybrid"),
-  algors = c("SDCV"), data_source_norm = NULL,
-  data_target_norm = NULL, norm_method = "high_exp",
-  norm_method_exp_thr = 35, weights_from_raw = F, val_on_source = T,
-  val_on_target = T, verbose = T, remove_left_over = T,
-  saveRDS = F, mc.cores = 10, cuda_kernel = "InterOptCuda")
+run_experiment(
+  data_source,
+  gr_source,
+  ctVal_source,
+  tmpFolder = NULL,
+  sub_names = NULL,
+  combs_name_mat = NULL,
+  sub_samples_for_weights = NULL,
+  data_target = NULL,
+  gr_target = NULL,
+  ctVal_target = NULL,
+  k = 2,
+  iter = F,
+  keep = 50,
+  retain_iters = F,
+  retain_thr = 10,
+  genorm_k_stables = 10,
+  weight_methods = c("geom_sd_hybrid"),
+  algors = c("SDCV"),
+  data_source_norm = NULL,
+  data_target_norm = NULL,
+  norm_method = "high_exp",
+  norm_method_exp_thr = 35,
+  weights_from_raw = F,
+  val_on_source = T,
+  val_on_target = T,
+  verbose = T,
+  remove_left_over = T,
+  saveRDS = F,
+  mc.cores = 10,
+  cuda_kernel = "InterOptCuda",
+  output_agg_refs = F
+)
 }
 \arguments{
 \item{data_source}{a matrix of genes expression. rows are genes and columns are the samples. its \code{rownames} should be the names of the genes}
@@ -76,6 +98,8 @@ run_experiment(data_source, gr_source, ctVal_source, tmpFolder = NULL,
 \item{mc.cores}{number of the cpu cores to use for calculation SD and CV stability measures.}
 
 \item{cuda_kernel}{a single character string for the InterOpt cuda kernel executable. defauly is 'InterOptCuda'}
+
+\item{output_agg_refs}{if \code{TRUE}, the aggregated reference genes for each combination and weighting method is provided in the output list element \code{aggregated_refs}}
 }
 \description{
 get weights for all combinations

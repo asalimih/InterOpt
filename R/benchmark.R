@@ -38,6 +38,59 @@ calc_cv_sd2 = function(wmat, combs, data_norm, ctVal, k, weight_method){
 	return(cbind(CV=cvs, SD=sds))
 }
 
+calc_agg_refs = function(wmat, combs, data, ctVal, k, weight_method){
+	combs = t(combs) # because the bug that happens in data_norm[combs[,rg]]
+
+	wmat = as.matrix(wmat) #this is so crucial
+
+	if(ctVal){
+		data_ct = data
+		data = 2^(40-data)
+	}
+
+	# the cv of each batch is calculated vectorizedly :)
+	bsize = 128
+	nn = nrow(wmat)
+	bNum = ceiling(nn/bsize)
+	startInd = 1
+	endInd = min(nn,bsize)
+
+	cvs = c()
+	sds = c()
+	full_A = c()
+	for(bInd in 1:bNum) {
+		rg = c(startInd:endInd)
+		len = length(rg)
+		if(weight_method=="arith_cv" | weight_method=="arith" | weight_method=="arith_sd"){# arithmetic
+			if (ctVal){
+				A = as.vector(t(wmat[rg,])) * data[combs[,rg],]
+				A = rowsum(A, rep(1:len,each=k))
+				A = 40 - log2(A) # back to log2 space
+			}else {
+				A = as.vector(t(wmat[rg,])) * data[combs[,rg],]
+				A = rowsum(A, rep(1:len,each=k))
+			}
+		}else{											#geometric
+			if(ctVal){
+				A = as.vector(t(wmat[rg,])) * data_ct[combs[,rg],]
+				A = rowsum(A, rep(1:len,each=k))
+			} else {
+				A = as.vector(t(wmat[rg,])) * log(data[combs[,rg],])
+				A = exp(rowsum(A, rep(1:len,each=k)))
+			}
+		}
+		# each row in A is a reference made of a combination
+		# sds = c(sds,matrixStats::rowSds(log2(A)))
+		# cvs = c(cvs,matrixStats::rowSds(A)/rowMeans(A))
+		full_A = rbind(full_A, A)
+
+		startInd = startInd+bsize
+		endInd = min(startInd+bsize-1,nn)
+		if(startInd>endInd) break;
+	}
+	return(full_A)
+}
+
 
 comb_weights2 = function(data, ctVal, k, weight_method="arith", sub_ind=NULL, lim = NULL, combs = NULL, weights_from_raw = F, mc.cores=32){
 
@@ -190,7 +243,7 @@ saveFlat = function(df, destFile){
 
 generate_combs_inds = function(mirs_for_comb, all_mirs, combs_name_mat, k){
 	if(!is.null(combs_name_mat)){
-		combs_idx_mat = structure(vapply(combs_name_mat, match, numeric(1), all_mirs), dim=dim(combs_name_mat)) 
+		combs_idx_mat = structure(vapply(combs_name_mat, match, numeric(1), all_mirs), dim=dim(combs_name_mat))
 	}else{
 		# generate all combinations of mirs_for_comb based on their index in all_mirs
 		mirs_for_comb_ind = match(mirs_for_comb, all_mirs)
@@ -329,6 +382,7 @@ next_combMat = function(kBestMat, genes_idx, keep){
 #' @param saveRDS logical, if \code{TRUE}, the final output is also saved as an RDS file in the tmpFolder
 #' @param mc.cores number of the cpu cores to use for calculation SD and CV stability measures.
 #' @param cuda_kernel a single character string for the InterOpt cuda kernel executable. defauly is 'InterOptCuda'
+#' @param output_agg_refs if \code{TRUE}, the aggregated reference genes for each combination and weighting method is provided in the output list element \code{aggregated_refs}
 #'
 #' @return
 #' @include weight_utils.R
@@ -343,7 +397,7 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 						  algors = c('SDCV'),
 						  data_source_norm=NULL, data_target_norm=NULL, norm_method='high_exp', norm_method_exp_thr=35,
 						  weights_from_raw=F, val_on_source=T, val_on_target=T,
-						  verbose=T, remove_left_over=T, saveRDS=F, mc.cores=10, cuda_kernel='InterOptCuda')
+						  verbose=T, remove_left_over=T, saveRDS=F, mc.cores=10, cuda_kernel='InterOptCuda', output_agg_refs=F)
 {
 	if(any(!weight_methods %in% c('arith', 'random','arith_cv','geom','geom_cv', 'geom_cv_exh','geom_sd','geom_sd_soft','geom_sd_hybrid','arith_sd','sd_simple')))
 		stop('wrong weight_methods element!')
@@ -462,6 +516,21 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 		return(weights_k)
 	}
 
+	proc_agg_refs = function(data, ctVal, gr, k, data_norm, gene_names, combs_mat, weights_mat, tag){
+		n_comb = nrow(combs_mat)
+		if(verbose)
+			cat('Preparing Aggregated Refs [k',k,'][',n_comb,'] ...                         \r', sep='')
+		agg_refs = calc_agg_refs(weights_mat, combs_mat, data, ctVal, k, wmethod)
+		agg_refs = data.frame(apply(combs_mat, 2, function(x) gene_names[x]),
+						   agg_refs, stringsAsFactors = F)
+		colnames(agg_refs) = c(paste0("Gene",1:k), colnames(data))
+		rownames(agg_refs) = c(1:nrow(agg_refs))
+
+		if(verbose)
+			cat('(',wmethod,')[k',k,'][',n_comb,'] Aggregated Refs Prepared!                         \n', sep='')
+		return(agg_refs)
+	}
+
 	proc_algor = function(data, ctVal, gr, k, data_norm, combs_mat, weights_mat, alg, tag){
 		n_comb = nrow(combs_mat)
 		if(verbose)
@@ -498,6 +567,8 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 
 	res_source = list()
 	res_target = list()
+	if(output_agg_refs)
+		aggregated_refs = list()
 
 	#--------- Main --------
 	if(!iter){
@@ -509,6 +580,10 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 		for(wmethod in weight_methods){
 			## Weights
 			weights_mat = proc_weights(data_source, ctVal_source, combs_mat_source, k, data_source_norm) # weights_mat is accessed in functions
+
+			## Aggregated Refs
+			if(output_agg_refs)
+				aggregated_refs[[wmethod]] = proc_agg_refs(data_source, ctVal_source, gr_source, k, data_source_norm, genes_source, combs_mat_source, weights_mat, 'source')
 
 			## Algors
 			stabs_mat_source = c()
@@ -616,6 +691,8 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 
 	## Integrate results
 	res_exper = list(res_source=res_source, res_target=res_target, genes=mirs_for_comb)
+	if(output_agg_refs)
+		res_exper$aggregated_refs = aggregated_refs
 	if(saveRDS)
 		saveRDS(res_exper, file.path(tmpFolder, 'res.rds'))
 

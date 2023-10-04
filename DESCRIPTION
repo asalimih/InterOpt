@@ -1,6 +1,6 @@
 Package: InterOpt
 Title: Optimal weights for qPCR Internal controls
-Version: 0.0.0.9100
+Version: 0.1.0.9100
 Authors@R: 
     person(given = "Adel",
            family = "Salimi",
@@ -11,7 +11,7 @@ Description: calculates the optimal weights for a combination of internal contro
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3
 Depends: R (>= 3.6.0)
 Suggests: 
     testthat (>= 2.1.0)
