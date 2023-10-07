@@ -6,7 +6,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-![InterOpt](https://raw.githubusercontent.com/asalimih/InterOpt/master/man/figures/TheGraphics_v2.tif)
+<img src="https://github.com/asalimih/InterOpt/blob/8eaf86e459fc14f54594429d44097b8a4e252ef4/man/figures/TheGraphics_v2.jpg" width="512" height="512" />
 
 The goal of InterOpt is to improve qPCR data normalization by providing
 optimal weights for weighted mean of multiple internal controls
