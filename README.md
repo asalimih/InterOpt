@@ -6,10 +6,17 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
+![InterOpt](https://raw.githubusercontent.com/asalimih/InterOpt/master/man/figures/TheGraphics_v2.tif)
+
 The goal of InterOpt is to improve qPCR data normalization by providing
-optimal weights for weighted mean of multiple internal controls. The
-common method when dealing with multiple internal controls is taking a
-geometric mean of them.
+optimal weights for weighted mean of multiple internal controls
+(reference genes). It can be easily utilized in combination with usual
+ΔΔCT method. Here instead of taking average of multiple internal
+controls (which is the common method) you use weighted mean.
+
+## Online web application
+
+A Shiny App is provided at [interopt.ir](https://interopt.ir/)
 
 ## Installation
 
@@ -22,9 +29,11 @@ devtools::install_github("asalimih/InterOpt")
 
 ## Use Cases
 
-1)  You have multiple internal controls (usually 2 or 3) and their
-    corresponding raw CT values. Here is how you can aggregate them into
-    one new internal control using weighted geometric mean:
+### 1) qPCR with multiple reference genes
+
+You have multiple internal controls (usually 2 or 3) and their
+corresponding raw CT values. Here is how you can aggregate them into one
+new internal control using weighted geometric mean:
 
 ``` r
 library(InterOpt)
@@ -37,11 +46,13 @@ new_control = colSums(w*x)
 # new_control is the weighted mean of the internal controls which can be used like a new internal control
 ```
 
-2)  You have a dataset containing lots of genes. Here is how you can
-    check all possible pair combinations (k=2) and calculate their
-    corresponding aggregation weights (optimal weights to use in
-    weighted mean) along with the stability measures (SD and CV) of each
-    resulting aggregated combination.
+### 2) Aggregated reference gene selection
+
+You have a dataset containing lots of genes. Here is how you can check
+all possible pair combinations (k=2) and calculate their corresponding
+aggregation weights (optimal weights to use in weighted mean) along with
+the stability measures (SD and CV) of each resulting aggregated
+combination.
 
 ``` r
 library(InterOpt)
@@ -91,3 +102,12 @@ manual (e.g. ?data_GSE78870):
 ## Note
 
 The documentation for the package is in progress …
+
+## Citation
+
+If you used this method in your studies please cite the following
+paper:  
+[Salimi, Adel, Saeid Rahmani, and Ali Sharifi-Zarchi. “InterOpt:
+Improved gene expression quantification in qPCR experiments using
+weighted aggregation of reference genes.” iScience 26.10
+(2023)](https://doi.org/10.1016/j.isci.2023.107945)
