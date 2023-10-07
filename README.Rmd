@@ -23,7 +23,7 @@ The goal of InterOpt is to improve qPCR data normalization by providing optimal 
 
 ## Online web application
 
-A Shiny App is provided at [interopt.ir](https://interopt.ir/)
+A Shiny App is provided at [interopt.ir](https://interopt.ir/). Its step by step tutorial is described [here](README_WebApp.md)
 
 ## Installation
 
@@ -73,6 +73,7 @@ result = run_experiment(data_source = data_GSE50013,
 
 # The calculated weights:
 head(result$res_source$geom_sd)
+
 # The corresponding weighted mean of the miRNAs:
 head(result$aggregated_refs$geom_sd[,1:7])
 ```

@@ -16,7 +16,8 @@ controls (which is the common method) you use weighted mean.
 
 ## Online web application
 
-A Shiny App is provided at [interopt.ir](https://interopt.ir/)
+A Shiny App is provided at [interopt.ir](https://interopt.ir/). Its step
+by step tutorial is described [here](README_WebApp.md)
 
 ## Installation
 
@@ -84,6 +85,7 @@ head(result$res_source$geom_sd)
 #> 4 has-miR-1305   hsa-miR-1274A  0.07901806 0.9209819 1.2866663 2.375019
 #> 5 has-miR-1305   hsa-miR-1274B  0.11235760 0.8876424 1.0162513 1.424279
 #> 6 has-miR-1305    hsa-miR-1290 -0.04124614 1.0412461 1.3745626 2.228133
+
 # The corresponding weighted mean of the miRNAs:
 head(result$aggregated_refs$geom_sd[,1:7])
 #>          Gene1           Gene2 SAMPLE.1 SAMPLE.2 SAMPLE.3 SAMPLE.4 SAMPLE.5
