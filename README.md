@@ -68,9 +68,14 @@ result = run_experiment(data_source = data_GSE50013,
                       norm_method_exp_thr = 35,
                       k = 2,
                       weight_methods=c('geom', 'geom_sd'),
+                      output_agg_refs = T,
                       mc.cores=4,
                       verbose=F)
-# Note: the data is automatically normalized using the norm_method and the aggregation weights are calculated based on the normalized data by default. moreover the stability measures are also calculated based on the normalized data.
+# Note: the data is automatically normalized using the norm_method and the aggregation weights
+#       are calculated based on the normalized data by default. Moreover, the stability measures
+#       are also calculated based on the normalized data.
+
+# The calculated weights:
 head(result$res_source$geom_sd)
 #>          Gene1           Gene2          w1        w2        CV       SD
 #> 1 has-miR-1305     has-miR-155  0.13664283 0.8633572 0.4980741 1.223680
@@ -79,6 +84,15 @@ head(result$res_source$geom_sd)
 #> 4 has-miR-1305   hsa-miR-1274A  0.07901806 0.9209819 1.2866663 2.375019
 #> 5 has-miR-1305   hsa-miR-1274B  0.11235760 0.8876424 1.0162513 1.424279
 #> 6 has-miR-1305    hsa-miR-1290 -0.04124614 1.0412461 1.3745626 2.228133
+# The corresponding weighted mean of the miRNAs:
+head(result$aggregated_refs$geom_sd[,1:7])
+#>          Gene1           Gene2 SAMPLE.1 SAMPLE.2 SAMPLE.3 SAMPLE.4 SAMPLE.5
+#> 1 has-miR-1305     has-miR-155 29.86960 29.30563 27.11556 30.99631 25.35778
+#> 2 has-miR-1305 hsa-miR-106b-5p 31.13685 31.11334 27.76919 30.53685 27.21181
+#> 3 has-miR-1305  hsa-miR-126-3p 24.60204 23.99873 21.99007 24.00204 24.53924
+#> 4 has-miR-1305   hsa-miR-1274A 29.31772 31.49375 27.19674 31.38857 23.41826
+#> 5 has-miR-1305   hsa-miR-1274B 27.03485 28.36407 24.76968 28.65395 22.63146
+#> 6 has-miR-1305    hsa-miR-1290 26.96810 31.09495 28.78771 33.55270 26.81860
 ```
 
 In order to have NormFinder and Genorm stability measures in the output,
