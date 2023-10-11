@@ -42,7 +42,7 @@ library(InterOpt)
 controls = c('RNU48','hsa-miR-16-5p')
 x = data_GSE78870[controls,]
 # x is a matrix of raw CT values, each row is an internal control and columns are samples
-w = calcWeight(x, ctVal = TRUE, weight_method = 'geom_sd')
+w = calcWeight(x, ctVal = TRUE, weight_method = 'geom_sd_plus')
 new_control = colSums(w*x)
 # new_control is the weighted mean of the internal controls which can be used like a new internal control
 ```
@@ -68,7 +68,7 @@ result = run_experiment(data_source = data_GSE50013,
                       norm_method = 'high_exp',
                       norm_method_exp_thr = 35,
                       k = 2,
-                      weight_methods=c('geom', 'geom_sd'),
+                      weight_methods=c('geom', 'geom_sd_hybrid'),
                       output_agg_refs = T,
                       mc.cores=4,
                       verbose=F)
@@ -77,24 +77,24 @@ result = run_experiment(data_source = data_GSE50013,
 #       are also calculated based on the normalized data.
 
 # The calculated weights:
-head(result$res_source$geom_sd)
+head(result$res_source$geom_sd_hybrid)
 #>          Gene1           Gene2          w1        w2        CV       SD
-#> 1 has-miR-1305     has-miR-155  0.13664283 0.8633572 0.4980741 1.223680
-#> 2 has-miR-1305 hsa-miR-106b-5p  0.01469799 0.9853020 0.9600015 1.622915
-#> 3 has-miR-1305  hsa-miR-126-3p  0.16942566 0.8305743 1.5454219 1.800675
-#> 4 has-miR-1305   hsa-miR-1274A  0.07901806 0.9209819 1.2866663 2.375019
-#> 5 has-miR-1305   hsa-miR-1274B  0.11235760 0.8876424 1.0162513 1.424279
-#> 6 has-miR-1305    hsa-miR-1290 -0.04124614 1.0412461 1.3745626 2.228133
+#> 1 has-miR-1305     has-miR-155  0.12348869 0.8765113 0.4845656 1.225702
+#> 2 has-miR-1305 hsa-miR-106b-5p  0.03695359 0.9630464 0.9646868 1.626087
+#> 3 has-miR-1305  hsa-miR-126-3p  0.15735982 0.8426402 1.5436056 1.801823
+#> 4 has-miR-1305   hsa-miR-1274A  0.09881178 0.9011882 1.2826722 2.376691
+#> 5 has-miR-1305   hsa-miR-1274B  0.09709854 0.9029015 1.0153004 1.426435
+#> 6 has-miR-1305    hsa-miR-1290 -0.01028321 1.0102832 1.3578631 2.231676
 
 # The corresponding weighted mean of the miRNAs:
-head(result$aggregated_refs$geom_sd[,1:7])
+head(result$aggregated_refs$geom_sd_hybrid[,1:7])
 #>          Gene1           Gene2 SAMPLE.1 SAMPLE.2 SAMPLE.3 SAMPLE.4 SAMPLE.5
-#> 1 has-miR-1305     has-miR-155 29.86960 29.30563 27.11556 30.99631 25.35778
-#> 2 has-miR-1305 hsa-miR-106b-5p 31.13685 31.11334 27.76919 30.53685 27.21181
-#> 3 has-miR-1305  hsa-miR-126-3p 24.60204 23.99873 21.99007 24.00204 24.53924
-#> 4 has-miR-1305   hsa-miR-1274A 29.31772 31.49375 27.19674 31.38857 23.41826
-#> 5 has-miR-1305   hsa-miR-1274B 27.03485 28.36407 24.76968 28.65395 22.63146
-#> 6 has-miR-1305    hsa-miR-1290 26.96810 31.09495 28.78771 33.55270 26.81860
+#> 1 has-miR-1305     has-miR-155 30.01693 29.46874 27.23921 31.16995 25.41960
+#> 2 has-miR-1305 hsa-miR-106b-5p 30.88982 30.83069 27.57111 30.28982 27.07828
+#> 3 has-miR-1305  hsa-miR-126-3p 24.66599 24.07716 22.03350 24.06599 24.58630
+#> 4 has-miR-1305   hsa-miR-1274A 29.12176 31.21664 27.02058 31.13521 23.37273
+#> 5 has-miR-1305   hsa-miR-1274B 27.15234 28.53192 24.86886 28.80959 22.65435
+#> 6 has-miR-1305    hsa-miR-1290 26.76684 30.72340 28.49666 33.13780 26.65450
 ```
 
 In order to have NormFinder and Genorm stability measures in the output,

@@ -43,7 +43,7 @@ library(InterOpt)
 controls = c('RNU48','hsa-miR-16-5p')
 x = data_GSE78870[controls,]
 # x is a matrix of raw CT values, each row is an internal control and columns are samples
-w = calcWeight(x, ctVal = TRUE, weight_method = 'geom_sd')
+w = calcWeight(x, ctVal = TRUE, weight_method = 'geom_sd_plus')
 new_control = colSums(w*x)
 # new_control is the weighted mean of the internal controls which can be used like a new internal control
 ```
