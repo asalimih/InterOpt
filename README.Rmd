@@ -63,7 +63,7 @@ result = run_experiment(data_source = data_GSE50013,
 					  norm_method = 'high_exp',
 					  norm_method_exp_thr = 35,
 					  k = 2,
-					  weight_methods=c('geom', 'geom_sd'),
+					  weight_methods=c('geom', 'geom_sd_hybrid'),
 					  output_agg_refs = T,
 					  mc.cores=4,
 					  verbose=F)
@@ -72,10 +72,10 @@ result = run_experiment(data_source = data_GSE50013,
 #       are also calculated based on the normalized data.
 
 # The calculated weights:
-head(result$res_source$geom_sd)
+head(result$res_source$geom_sd_hybrid)
 
 # The corresponding weighted mean of the miRNAs:
-head(result$aggregated_refs$geom_sd[,1:7])
+head(result$aggregated_refs$geom_sd_hybrid[,1:7])
 ```
 In order to have NormFinder and Genorm stability measures in the output, you need to first add `InterOptCuda` to your PATH (Please check [InterOptCuda](https://github.com/asalimih/InterOptCuda)). Then just add `algors=c('SD','CV','Genorm','NormFinder')` argument in `run_experiment`
 
