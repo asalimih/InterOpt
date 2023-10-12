@@ -568,7 +568,7 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 	}
 
 	proc_resdf = function(gene_names, combs_mat, weights_mat, stabs_mat, k){
-		resdf = data.frame(apply(combs_mat, 2, function(x) gene_names[x]),
+		resdf = data.frame(matrix(apply(combs_mat, 2, function(x) gene_names[x]), ncol=k),
 						   weights_mat, stabs_mat, stringsAsFactors = F)
 		colnames(resdf) = c(paste0("Gene",1:k), paste0("w",1:k), colnames(stabs_mat))
 		rownames(resdf) = c(1:nrow(resdf))
