@@ -532,7 +532,7 @@ run_experiment = function(data_source, gr_source, ctVal_source, tmpFolder=NULL,
 		if(verbose)
 			cat('Preparing Aggregated Refs [k',k,'][',n_comb,'] ...                         \r', sep='', file=stdout.file, append=T)
 		agg_refs = calc_agg_refs(weights_mat, combs_mat, data, ctVal, k, wmethod)
-		agg_refs = data.frame(apply(combs_mat, 2, function(x) gene_names[x]),
+		agg_refs = data.frame(matrix(apply(combs_mat, 2, function(x) gene_names[x]), ncol=k),
 						   agg_refs, stringsAsFactors = F)
 		colnames(agg_refs) = c(paste0("Gene",1:k), colnames(data))
 		rownames(agg_refs) = c(1:nrow(agg_refs))
