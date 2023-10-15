@@ -16,8 +16,7 @@ controls (which is the common method) you use weighted mean.
 
 ## Online web application
 
-A Shiny App is provided at [interopt.ir](https://interopt.ir/). Its step
-by step tutorial is described [here](README_WebApp.md)
+Please visit [interopt.ir](https://interopt.ir/) for more information.
 
 ## Installation
 
